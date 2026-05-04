@@ -22,6 +22,31 @@ export default function RandomMovie() {
     setCurrentMovie(null);
   }, [id]);
 
+  //!
+  useEffect(() => {
+    if (!id) return;
+
+    const apiKey = import.meta.env.VITE_TMDB_KEY;
+
+    fetch(
+      `https://api.themoviedb.org/3/movie/${id}?api_key=${apiKey}&append_to_response=videos,credits,images,similar,recommendations,release_dates`
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        setCurrentMovie(data || null);
+
+        const results = data?.videos?.results || [];
+        const trailer =
+          results.find(
+            (video) => video.site === "YouTube" && video.type === "Trailer"
+          ) || results.find((video) => video.site === "YouTube");
+        setTrailerKey(trailer?.key || "");
+
+        setMovies(data?.similar?.results || []);
+      })
+      .catch((err) => console.error(err));
+  }, [id]);
+
   useEffect(() => {
     if (!pageContentRef.current) return;
     gsap.killTweensOf(pageContentRef.current);
@@ -32,33 +57,18 @@ export default function RandomMovie() {
     );
   }, [id]);
 
-  useEffect(() => {
-    if (!id) return;
-
-    const apiKey = import.meta.env.VITE_TMDB_KEY;
-
-    fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${apiKey}`)
-      .then(res => res.json())
-      .then(data => setCurrentMovie(data || null));
-
-    fetch(`https://api.themoviedb.org/3/movie/${id}/videos?api_key=${apiKey}`)
-      .then(res => res.json())
-      .then(data => {
-        const results = data?.results || [];
-        const trailer =
-          results.find(
-            video => video.site === "YouTube" && video.type === "Trailer"
-          ) || results.find(video => video.site === "YouTube");
-        setTrailerKey(trailer?.key || "");
-      });
-
-    fetch(`https://api.themoviedb.org/3/movie/${id}/similar?api_key=${apiKey}`)
-      .then(res => res.json())
-      .then(data => setMovies(data.results || []));
-  }, [id]);
+  const getAgeRate = (movie, country = "US") => {
+    const countryData = movie?.release_dates?.results?.find(
+      (r) => r.iso_3166_1 === country
+    );
+    return (
+      countryData?.release_dates?.find((r) => r.certification)?.certification ||
+      "N/A"
+    );
+  };
 
   const trailerSrc = trailerKey
-    ? `https://www.youtube.com/embed/${trailerKey}?start=5&autoplay=1&rel=0&modestbranding=1`
+    ? `https://www.youtube.com/embed/${trailerKey}?start=10&autoplay=1&rel=0&modestbranding=1`
     : "";
 
 
@@ -85,22 +95,28 @@ export default function RandomMovie() {
               alt={currentMovie?.title || "Movie image"}
             />
           ) : (
-            <div className="w-full min-w-screen h-[250px] rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-300">
+            <div className="w-full min-w-screen min-h-screen rounded-lg bg-zinc-800 flex items-center justify-center text-zinc-300">
               No movie image available
             </div>
           )}
 
-          <div className="absolute bottom-12 left-0 [background-image:var(--d-fade)]  w-full h-full"></div>
+          <div className="absolute bottom-0 left-0 [background-image:var(--d-fade)]  w-full h-full"></div>
           <div className="absolute bottom-0 z-10 flex justify-between items-center pl-[10%] w-full h-[400px] self-end [background-image:var(--v-fade)]">
-            <div className="text-[var(--light-color)] ">
-              <h1 className="text-[100px]">
-                {currentMovie?.title || "Movie Details"}
-              </h1>
-              <h3></h3>
-              <p>⭐ {(currentMovie.vote_average).toFixed(1)}</p>
+            <div className="absolute bottom-20 text-[var(--light-color)] flex flex-col gap-4 w-[50%]">
+              <h1 className="text-[100px] font-semibold drop-shadow-[0_0_10px_rgba(0,0,0,0.9)]">{currentMovie?.title || "Movie Details"}</h1>
+              {currentMovie?.release_date?.slice(0, 4) === "2026" ? <p className="text-blue-500 uppercase text-[20px]">New Release</p> : <p className="text-blue-500 uppercase text-[20px] my-[15px]"></p>}
+              <p className="text-[18px]">⭐ {currentMovie?.vote_average != null ? currentMovie.vote_average.toFixed(1) : "N/A"} | {currentMovie?.vote_count != null ? currentMovie.vote_count : "N/A"} vote</p>
+              <p className="text-[18px]">
+                {currentMovie?.release_date ? currentMovie.release_date.slice(0, 4) : "N/A"} •{" "}
+                {currentMovie?.runtime ? `${currentMovie.runtime} min` : "N/A"} •{" "}
+                {getAgeRate(currentMovie, "US")} •{" "}
+                {currentMovie?.original_language ? currentMovie.original_language.toUpperCase() : "N/A"}
+              </p>
+              <p className="text-[20px] text-zinc-300">{currentMovie?.overview || "No overview available"}</p>
+              <p className="text-[20px]">{currentMovie?.genres ? currentMovie.genres.map(g => g.name).join(" • ") : "No genres available"}</p>
             </div>
 
-            <div className="absolute bottom-14 left-[45%] flex justify-between items-center w-[220px] px-2 py-2 bg-white/10 text-[22px] rounded-full text-[var(--light-color)]">
+            <div className="absolute bottom-5 left-[45%] flex justify-between items-center w-[220px] px-2 py-2 bg-white/10 text-[22px] rounded-full text-[var(--light-color)]">
               <button
                 className="flex justify-center items-center w-8 h-8 border border-[var(--light-color)] rounded-full hover:bg-white/10 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={() => setViewMode("image")}
@@ -119,7 +135,7 @@ export default function RandomMovie() {
             </div>
 
             {!trailerKey && (
-              <p className="text-zinc-300">Trailer not available</p>
+              <p className="absolute right-20 bottom-4 text-zinc-300">Trailer not available</p>
             )}
           </div>
         </div>
@@ -130,26 +146,11 @@ export default function RandomMovie() {
           <h1 className='text-[var(--light-color)] text-[70px] ml-[2%]'>Recommended Movies</h1>
           <div className="flex justify-start flex-wrap gap-[26px] w-[96%] h-[1790px] ml-[2%] mb-[150px] overflow-x-auto scroll-smooth scrollBar">
             {movies.map(movie => (
-              <div
-                className="mx-[6px] my-[10px] w-[272px] h-[405px] bg-[var(--light-color)] rounded-lg flex-shrink-0 hover:scale-[1.05] transition-all duration-300 cursor-pointer"
-                key={movie.id}
-                onClick={() => {
-                  setViewMode("image");
-                  setTrailerKey("");
-                  setCurrentMovie(movie);
-                  navigate(`/movie/${movie.id}`);
-                }}
-              >
-                <img
-                  className="rounded-lg text-[30px]"
-                  src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                  alt={`${movie.title} - this movie is currently unavailable`}
-                />
-
-                {/* <h3>{movie.title}</h3> */}
-                {/* <p>⭐ {(movie.vote_average).toFixed(1)}</p> */}
-              </div>
-            ))}
+              movie.poster_path && (
+                <div className="mx-[6px] my-[10px] w-[272px] h-[405px] bg-[var(--light-color)] rounded-lg flex-shrink-0 hover:scale-[1.05] transition-all duration-300 cursor-pointer" key={movie.id} onClick={() => {setViewMode("image"); setTrailerKey(""); navigate(`/movie/${movie.id}`);}}>
+                  <img className="rounded-lg text-[30px]" src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`} alt={`${movie.title} - this movie is currently unavailable`}/>
+                </div>
+              )))}
           </div>
         </section>
       </div>

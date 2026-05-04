@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PageBtns from "./PageBtns";
 
-export default function NatGeoMovies() {
-  const [movies, setMovies] = useState([]);
+export default function NatGeoMovies({ movies, setMovies }) {
   const [page, setPage] = useState(1);
   const navigate = useNavigate();
 
@@ -13,7 +12,7 @@ export default function NatGeoMovies() {
     )
       .then(res => res.json())
       .then(data => setMovies(data.results));
-  }, [page]);
+  }, [page, setMovies]);
 
 
   return (
@@ -29,20 +28,14 @@ export default function NatGeoMovies() {
 
         <div className="flex justify-start items-center gap-4 w-[70%] overflow-x-auto scroll-smooth scrollBar">
           {movies.map(movie => (
-            <div
-              className="m-[6px] w-[272px] h-[400px] bg-[var(--light-color)] rounded-lg flex-shrink-0 hover:scale-[1.05] transition-all duration-300 cursor-pointer"
-              key={movie.id}
-              onClick={() => navigate(`/movie/${movie.id}`)}
-            >
-              <img
-                className="rounded-lg"
-                src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-              />
-            </div>
-          ))}
+            movie.poster_path && (
+              <div className="m-[6px] w-[272px] h-[400px] bg-[var(--light-color)] rounded-lg flex-shrink-0 hover:scale-[1.05] transition-all duration-300 cursor-pointer" key={movie.id} onClick={() => navigate(`/movie/${movie.id}`)} >
+                <img className="rounded-lg" src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}/>
+              </div>
+            )))}
         </div>
       </div>
-      
+
       <PageBtns page={page} setPage={setPage} />
     </>
   );

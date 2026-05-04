@@ -2,8 +2,8 @@
 
 :root {
   --h-fade: linear-gradient(to right, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.9), transparent);
-  --v-fade: linear-gradient(to top, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.9), transparent);
-  --d-fade: radial-gradient(circle at 90% 10%, transparent, transparent, transparent, transparent, transparent, transparent, transparent, transparent, rgba(0, 0, 0, 0.30), rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.9));
+  --v-fade: linear-gradient(to top, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.7), transparent);
+  --d-fade: radial-gradient(circle at 90% 10%, transparent, transparent, transparent, transparent, transparent, transparent, transparent, transparent, rgba(0, 0, 0, 0.30), rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.97), rgba(0, 0, 0, 1), rgba(0, 0, 0, 1));
 
   --dark-color: #171719;
   --light-color: #eeeeee;
@@ -99,7 +99,6 @@ h1 {
 }
 
 .scrollBar::-webkit-scrollbar-track {
-  margin-top: 12px;
   background: rgba(255, 255, 255, 0.07);
   border-radius: 10px;
 }
@@ -147,19 +146,6 @@ h1 {
   mask-composite: exclude;
 }
 
-.search-section {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border: 1px groove var(--light-color);
-  height: 60px;
-  width: fit-content;
-  border-radius: 50px;
-  position: relative;
-  color: var(--light-color);
-  transition: all 0.3s;
-}
-
 .search-box {
   text-indent: 20px;
   height: 50px;
@@ -185,10 +171,6 @@ h1 {
   outline: none;
   color: var(--light-color);
   font-style: italic;
-}
-
-.search-section:hover {
-  box-shadow: 0 0 20px rgba(208, 196, 175, 0.5);
 }
 
 .pixelated {

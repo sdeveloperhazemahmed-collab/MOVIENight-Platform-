@@ -4,6 +4,7 @@ import { Route, Routes } from "react-router-dom";
 
 // import { ModeContext } from './contexts/ModeContext';
 import { UsedBtnContext } from './contexts/UsedBtnContext';
+import { SearchContext } from "./contexts/SearchContext";
 
 import Logo from "./components/Logo";
 import PSLightBg from "./data/PSLightBg";
@@ -16,6 +17,7 @@ import RandomMovie from "./components/RandomMovie";
 import MarvelMovies from "./components/MarvelMovies";
 import NatGeoMovies from "./components/NatGeoMovies";
 import DisneyMovies from "./components/DisneyMovies";
+import SearchScreen from "./components/SearchScreen";
 import UpcomigMovies from './components/UpcomigMovies';
 import StarWarsMovies from "./components/StarWarsMovies";
 
@@ -26,9 +28,11 @@ export default function App() {
 
   // const { darkMode } = useContext(ModeContext);
   const { selectedBtn } = useContext(UsedBtnContext);
-  
+  const { searchWindow } = useContext(SearchContext);
+
   const [favouritesWindow] = useState(false);
   const [showLoading, setShowLoading] = useState(true);
+  const [movies, setMovies] = useState([]);
 
   // const [id, setId] = useState(null);
 
@@ -134,6 +138,17 @@ export default function App() {
     );
   }, [selectedBtn]);
 
+  useEffect(() => {
+    const closeOnEscape = (e) => {
+      if (e.key === "Escape") {
+        document.dispatchEvent(new Event("close-search"));
+      }
+    };
+
+    document.addEventListener("keydown", closeOnEscape);
+    return () => document.removeEventListener("keydown", closeOnEscape);
+  }, []);
+
   return (
     <>
       {showLoading && (
@@ -168,11 +183,11 @@ export default function App() {
                   <section className='flex flex-col justify-center items-center w-[90%] h-full'>
                     <Buttons />
                     <div ref={channelContentRef} className='flex flex-col justify-center items-center w-full h-full'>
-                      {selectedBtn === "disney" && <DisneyMovies />}
-                      {selectedBtn === "pixar" && <PixarMovies />}
-                      {selectedBtn === "marvel" && <MarvelMovies />}
-                      {selectedBtn === "natgeo" && <NatGeoMovies />}
-                      {selectedBtn === "starwars" && <StarWarsMovies />}
+                      {selectedBtn === "disney" && <DisneyMovies movies={movies} setMovies={setMovies} />}
+                      {selectedBtn === "pixar" && <PixarMovies movies={movies} setMovies={setMovies} />}
+                      {selectedBtn === "marvel" && <MarvelMovies movies={movies} setMovies={setMovies} />}
+                      {selectedBtn === "natgeo" && <NatGeoMovies movies={movies} setMovies={setMovies} />}
+                      {selectedBtn === "starwars" && <StarWarsMovies movies={movies} setMovies={setMovies} />}
                     </div>
                   </section>
                 </div>
@@ -183,11 +198,12 @@ export default function App() {
                 </section>
 
                 {favouritesWindow && (<Favourites />)}
+                {searchWindow && <SearchScreen />}
               </main>
 
-              {/* <footer className='flex justify-center items-center w-full h-[150px] text-[var(--light-color)] bg-[rgba(0,0,0,0.45)] backdrop-blur-[2px]'>
+              <footer className="flex justify-center items-center w-full h-[90px] absolute bottom-[-180vh] bg-[rgba(0,0,0,0.45)] backdrop-blur-[2px] text-[var(--light-color)]">
                 Version I.II • MMXXVI
-              </footer> */}
+              </footer>
             </div >
           }
         />
